@@ -1,0 +1,5 @@
+__pycache__
+MiDaS/model.pt
+BoostingMonocularDepth/pix2pix/checkpoints
+checkpoints/
+test.py
