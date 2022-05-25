@@ -9,3 +9,7 @@ RUN pip install networkx cynetworkx
 RUN pip install PyQt5
 COPY . ./
 RUN pip install -r requirements.txt
+RUN chmod +x ./download.sh
+RUN ./download.sh
+ENV AWS_ACCESS_KEY_ID=AKIAQX7GHQCGXGRUJ7R3
+ENV AWS_SECRET_ACCESS_KEY=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
