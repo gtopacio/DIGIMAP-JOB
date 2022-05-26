@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y libfontconfig1-dev wget ffmpeg libsm6 l
 WORKDIR /3d-photo-inpainting
 RUN pip install boto3 firebase_admin Cython
 RUN pip install scipy matplotlib scikit-image
-RUN pip install networkx cynetworkx
+RUN pip install networkx==2.3 cynetworkx
 RUN pip install PyQt5
 COPY . ./
 RUN pip install -r requirements.txt
@@ -13,3 +13,5 @@ RUN chmod +x ./download.sh
 RUN ./download.sh
 ENV AWS_ACCESS_KEY_ID=AKIAQX7GHQCGXGRUJ7R3
 ENV AWS_SECRET_ACCESS_KEY=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
+ENV DISPLAY=:0
+ENV CUDA_VISIBLE_DEVICES=0
