@@ -31,7 +31,7 @@ if __name__ == "__main__":
     running = True
     waitTime = 1
     waitTimeCap = 20
-    visibilityTimeout = 2
+    visibilityTimeout = 15*60
 
     cred_obj = firebase_admin.credentials.Certificate("firebase-admin-key.json")
     default_app = firebase_admin.initialize_app(cred_obj, options=None, name="FirestoreDB")
@@ -88,10 +88,11 @@ if __name__ == "__main__":
                 videoBlob = bucket.blob(videoFileName)
                 videoBlob.upload_from_filename(os.path.join("video", videoFileName))
 
-                signedURL = generateURL(videoFileName)
+                signedURL = generateURL(bucket, videoFileName)
                 firestore.document(f"jobs/{id}").update({
-                    u'status': "UPLOADED",
-                    u'link': signedURL
+                    u'status': "FINISHED",
+                    u'link': signedURL,
+                    u'message': "Successfully generated a 3D Photo"
                 })
 
                 imageBlob.delete()
@@ -116,4 +117,3 @@ if __name__ == "__main__":
                 clean_folder(os.path.join("video"))
 
         waitTime = 1
-        sys.exit(0)
