@@ -30,6 +30,7 @@ parser.add_argument('--depth_folder', type=str, default='depth',help='Configure 
 parser.add_argument('--mesh_folder', type=str, default='mesh',help='Configure of post processing')
 parser.add_argument('--video_folder', type=str, default='video',help='Configure of post processing')
 args = parser.parse_args()
+
 config = yaml.safe_load(open(args.config, 'r'))
 if config['offscreen_rendering'] is True:
     vispy.use(app='PyQt5')
