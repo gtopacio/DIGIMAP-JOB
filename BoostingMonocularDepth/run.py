@@ -29,7 +29,7 @@ import warnings
 warnings.simplefilter('ignore', np.RankWarning)
 
 # select device
-device = torch.device("cuda")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("device: %s" % device)
 
 # Global variables

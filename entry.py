@@ -3,9 +3,27 @@ import boto3
 import logging
 import glob
 import botocore.exceptions as ClientError
+import argparse
 
 import firebase_admin
 from firebase_admin import firestore 
+
+
+os.environ["AWS_ACCESS_KEY_ID"] = "AKIAQX7GHQCGXGRUJ7R3"
+os.environ["AWS_SECRET_ACCESS_KEY"] = "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"
+os.environ["BUCKET_NAME"] = "digimap-s3"
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--name", action="store_true", help="Runs the image quilting algorithm that uses randomly generates a texture from a static image")
+parser.add_argument("--visualize", action="store_true", help="Runs the image quilting algorithm that uses randomly generates a texture from a static image")
+parser.add_argument("--image", type=str, default="pattern.png", help="File path of the source texture")
+parser.add_argument("--output", type=str, default="generated_texture.png", help="File path where the generated texture will be saved")
+parser.add_argument("--block_size", type=int, default=40, help="See 'guide.jpg'")
+parser.add_argument("--block_overlap", type=int, default=10, help="See 'guide.jpg'")
+parser.add_argument("--output_size", type=int, default=160, help="Size of output image")
+
+args = parser.parse_args()
 
 try:
     cred_obj = firebase_admin.credentials.Certificate("firebase-admin-key.json")
@@ -39,5 +57,5 @@ try:
             logging.error(e)
 
     firestore.document(f"jobs/{fileNameNoExt}").update({u'links': dict})
-except:
-    print("Error")
+except Exception as e:
+    print(e)
