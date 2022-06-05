@@ -64,8 +64,7 @@ if __name__ == "__main__":
         if(len(response.get('Messages', [])) <= 0):
             waitTime *= 2
             if waitTime > waitTimeCap:
-                waitTime = 1
-            print(f"No Message Received, Wait Time: {waitTime}")
+                waitTime = waitTimeCap
             continue
 
         for message in response.get("Messages", []):
