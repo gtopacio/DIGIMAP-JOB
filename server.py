@@ -46,9 +46,8 @@ if __name__ == "__main__":
         print("Program will terminate after finishing the process")
 
     signal.signal(signal.SIGINT, signal_handler)
-
+    print("Running Renderer")
     while running:
-
         response = sqs.receive_message(
             QueueUrl=SQS_QUEUE_URL,
             AttributeNames=[
@@ -66,6 +65,7 @@ if __name__ == "__main__":
             waitTime *= 2
             if waitTime > waitTimeCap:
                 waitTime = 1
+            print(f"No Message Received, Wait Time: {waitTime}")
             continue
 
         for message in response.get("Messages", []):
@@ -77,16 +77,21 @@ if __name__ == "__main__":
                 traj = message_body["traj"]["StringValue"]
                 config = os.path.join("arguments", traj+".yml")
 
-                firestore.document(f"jobs/{id}").update({u'status': "PROCESSING"})
+                firestore.document(f"jobs/{id}").update({u'status': "PROCESSING", u'message': "Currently being processed"})
                 imageBlob = bucket.blob(id+".jpg")
                 imageBlob.download_to_filename(os.path.join("image", id+".jpg"))
 
+                print(f"Successfully downloaded {id}")
+                print(f"Trajectory: {traj} Config: {config}")
+
                 os.system(f'python main.py --config {config}')
 
-                firestore.document(f"jobs/{id}").update({u'status': "UPLOADING"})
+                firestore.document(f"jobs/{id}").update({u'status': "UPLOADING", u'message': "Video being uploaded"})
                 videoFileName = id + '_' + traj + '.mp4'
                 videoBlob = bucket.blob(videoFileName)
                 videoBlob.upload_from_filename(os.path.join("video", videoFileName))
+
+                print(f"Successfully uploaded {videoFileName}")
 
                 signedURL = generateURL(bucket, videoFileName)
                 firestore.document(f"jobs/{id}").update({
@@ -95,11 +100,15 @@ if __name__ == "__main__":
                     u'message': "Successfully generated a 3D Photo"
                 })
 
+                print(f"Link: {signedURL}")
+
                 imageBlob.delete()
+                print(f"Successfully Deleted Image")
                 sqs.delete_message(
                     QueueUrl=SQS_QUEUE_URL,
                     ReceiptHandle=receiptHandle
                 )
+                print(f"Successfully Deleted Message {receiptHandle}")
 
             except Exception as e:
                 firestore.document(f"jobs/{id}").update({

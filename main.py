@@ -33,7 +33,7 @@ args = parser.parse_args()
 
 config = yaml.safe_load(open(args.config, 'r'))
 if config['offscreen_rendering'] is True:
-    vispy.use(app='PyQt5')
+    vispy.use(app='egl')
 
 config['src_folder'] = args.src_folder
 config['mesh_folder'] = args.mesh_folder
