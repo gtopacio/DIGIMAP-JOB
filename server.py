@@ -36,23 +36,24 @@ if __name__ == "__main__":
         aws_secret_access_key=config("AWS_SECRET_ACCESS_KEY")
     )
 
-    input_queue = multiprocessing.JoinableQueue()
-    stop_event = multiprocessing.Event()
-    workers = []
-
     numWorkers = config("NUM_WORKERS", default=1, cast=int)
     print(f"Workers: {numWorkers}")
-
-    for _ in range(numWorkers):
-        p = multiprocessing.Process(target=worker, args=(input_queue, stop_event))
-        workers.append(p)
-        p.start()
+    if numWorkers > 1:
+        input_queue = multiprocessing.JoinableQueue()
+        stop_event = multiprocessing.Event()
+        workers = []
+        for _ in range(numWorkers):
+            p = multiprocessing.Process(target=worker, args=(input_queue, stop_event))
+            workers.append(p)
+            p.start()
 
     def signal_handler(sig, frame):
         global running
         global stop_event
+        global numWorkers
+        if numWorkers > 1:
+            stop_event.set()
         running = False
-        stop_event.set()
         print("Program will terminate after finishing the process")
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
@@ -78,10 +79,14 @@ if __name__ == "__main__":
             continue
 
         for message in response.get("Messages", []):
-            input_queue.put(message)
+            if numWorkers > 1:
+                input_queue.put(message)
+            else:
+                processMessage(message)
 
         waitTime = 1
 
-    input_queue.join()
-    for w in workers:
-        w.join()
+    if numWorkers > 1:
+        input_queue.join()
+        for w in workers:
+            w.join()
