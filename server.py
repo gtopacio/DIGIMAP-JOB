@@ -6,19 +6,10 @@ from firebase_admin import firestore, storage
 import signal
 import sys
 from server_utils import clean_folder, generateURL
+import decouple
 
-os.environ["AWS_ACCESS_KEY_ID"] = "AKIAQX7GHQCG6HJXNNND"
-os.environ["AWS_SECRET_ACCESS_KEY"] = "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"
-os.environ["SQS_QUEUE_URL"] = "https://sqs.ap-southeast-1.amazonaws.com/051485573261/digimap.fifo"
-
-# os.environ["AWS_ACCESS_KEY_ID"] = "AKIAQX7GHQCG6BC5KUUQ"
-# os.environ["AWS_SECRET_ACCESS_KEY"] = "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"
-# os.environ["SQS_QUEUE_URL"] = "https://sqs.ap-southeast-1.amazonaws.com/051485573261/digimap-dlq.fifo"
-
-os.environ["FIREBASE_BUCKET"] = "digimap-3dp.appspot.com"
-
-SQS_QUEUE_URL = os.getenv("SQS_QUEUE_URL")
-FIREBASE_BUCKET = os.getenv("FIREBASE_BUCKET")
+SQS_QUEUE_URL = decouple.config("SQS_QUEUE_URL")
+FIREBASE_BUCKET = decouple.config("FIREBASE_BUCKET")
 
 BOOST_BASE = 'BoostingMonocularDepth'
 BOOST_INPUTS = 'inputs'
@@ -38,7 +29,12 @@ if __name__ == "__main__":
     firestore = firestore.client(app=default_app)
     bucket = storage.bucket(name=FIREBASE_BUCKET, app=default_app)
 
-    sqs = boto3.client("sqs", region_name="ap-southeast-1")
+    sqs = boto3.client(
+        "sqs",
+        region_name="ap-southeast-1",
+        aws_access_key_id=decouple.config("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=decouple.config("AWS_SECRET_ACCESS_KEY")
+    )
 
     def signal_handler(sig, frame):
         global running
@@ -83,7 +79,7 @@ if __name__ == "__main__":
                 print(f"Successfully downloaded {id}")
                 print(f"Trajectory: {traj} Config: {config}")
 
-                os.system(f'python main.py --config {config}')
+                os.system(f'python main.py --config {config} --job_id {id}')
 
                 firestore.document(f"jobs/{id}").update({u'status': "UPLOADING", u'message': "Video being uploaded"})
                 videoFileName = id + '_' + traj + '.mp4'
@@ -114,6 +110,11 @@ if __name__ == "__main__":
                     u'status': "FAILED",
                     u'message': str(e)
                 })
+                sqs.change_message_visibility(
+                    QueueUrl=SQS_QUEUE_URL,
+                    ReceiptHandle=receiptHandle,
+                    VisibilityTimeout=5
+                )
                 print(e)
 
             finally:

@@ -25,20 +25,12 @@ from bilateral_filtering import sparse_bilateral_filtering
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--config', type=str, default='argument.yml',help='Configure of post processing')
-parser.add_argument('--src_folder', type=str, default='image',help='Configure of post processing')
-parser.add_argument('--depth_folder', type=str, default='depth',help='Configure of post processing')
-parser.add_argument('--mesh_folder', type=str, default='mesh',help='Configure of post processing')
-parser.add_argument('--video_folder', type=str, default='video',help='Configure of post processing')
+parser.add_argument('--job_id', type=str, required=True,help='Firestore Document ID')
 args = parser.parse_args()
 
 config = yaml.safe_load(open(args.config, 'r'))
 if config['offscreen_rendering'] is True:
     vispy.use(app='egl')
-
-config['src_folder'] = args.src_folder
-config['mesh_folder'] = args.mesh_folder
-config['video_folder'] = args.video_folder
-config['depth_folder'] = args.depth_folder
 
 os.makedirs(config['mesh_folder'], exist_ok=True)
 os.makedirs(config['video_folder'], exist_ok=True)
@@ -52,6 +44,8 @@ else:
     device = "cpu"
 
 print(f"running on device {device}")
+
+FIRESTORE_ID = args.job_id
 
 for idx in tqdm(range(len(sample_list))):
     depth = None
