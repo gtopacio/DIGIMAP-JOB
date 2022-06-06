@@ -6,6 +6,7 @@ import multiprocessing
 import queue
 from decouple import config
 from server_utils import SQS_QUEUE_URL, processMessage
+import nvidia_smi
 
 def worker(input_queue, stop_event):
     while not stop_event.is_set():
@@ -44,9 +45,16 @@ if __name__ == "__main__":
     stop_event = multiprocessing.Event()
     workers = []
 
-    jobMemLimit = 1000 * 1024 * 1024 * RAM_PER_JOB
-    numWorkers = int(psutil.virtual_memory().available / jobMemLimit)
+    nvidia_smi.nvmlInit()
+    handle = nvidia_smi.nvmlDeviceGetHandleByIndex(0)
+    info = nvidia_smi.nvmlDeviceGetMemoryInfo(handle)
+    nvidia_smi.nvmlShutdown()
 
+    jobMemLimit = 1000 * 1024 * 1024 * RAM_PER_JOB
+    minMem = min(info.free, psutil.virtual_memory().available)
+    numWorkers = minMem // jobMemLimit
+
+    print("Minimum Memory: ", minMem)
     print("Number of Workers: ", numWorkers)
 
     for _ in range(numWorkers):

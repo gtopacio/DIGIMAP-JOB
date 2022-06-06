@@ -12,3 +12,4 @@ networkx==2.3
 cynetworkx
 PyQt5
 python-decouple
+nvidia-ml-py3
