@@ -17,8 +17,8 @@ def run_boostmonodepth(img_names, src_folder, depth_folder, job_id):
     if not isinstance(img_names, list):
         img_names = [img_names]
 
-    BOOST_INPUTS_NEW = os.path.join(BOOST_BASE, BOOST_INPUTS, job_id)
-    BOOST_OUTPUTS_NEW = os.path.join(BOOST_BASE, BOOST_OUTPUTS, job_id)
+    BOOST_INPUTS_NEW = os.path.join(BOOST_INPUTS, job_id)
+    BOOST_OUTPUTS_NEW = os.path.join(BOOST_OUTPUTS, job_id)
 
     os.makedirs(BOOST_INPUTS_NEW, exist_ok=True)
     os.makedirs(BOOST_OUTPUTS_NEW, exist_ok=True)
