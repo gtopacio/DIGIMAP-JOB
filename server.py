@@ -1,12 +1,10 @@
 import os
 import boto3
 import signal
-import psutil
 import multiprocessing
 import queue
 from decouple import config
 from server_utils import SQS_QUEUE_URL, processMessage
-import nvidia_smi
 
 def worker(input_queue, stop_event):
     while not stop_event.is_set():
@@ -32,9 +30,6 @@ if __name__ == "__main__":
     waitTimeCap = 20
     visibilityTimeout = 15*60
 
-    RAM_PER_JOB = config('RAM_PER_JOB', default=10, cast=int)
-    print(f"Ram Per Job: {RAM_PER_JOB}")
-
     sqs = boto3.client("sqs",
         region_name="ap-southeast-1",
         aws_access_key_id=config("AWS_ACCESS_KEY_ID"),
@@ -45,17 +40,7 @@ if __name__ == "__main__":
     stop_event = multiprocessing.Event()
     workers = []
 
-    nvidia_smi.nvmlInit()
-    handle = nvidia_smi.nvmlDeviceGetHandleByIndex(0)
-    info = nvidia_smi.nvmlDeviceGetMemoryInfo(handle)
-    nvidia_smi.nvmlShutdown()
-
-    jobMemLimit = 1000 * 1024 * 1024 * RAM_PER_JOB
-    minMem = min(info.free, psutil.virtual_memory().available)
-    numWorkers = minMem // jobMemLimit
-
-    print("Minimum Memory: ", minMem)
-    print("Number of Workers: ", numWorkers)
+    numWorkers = config("NUM_WORKERS", default=1, cast=int)
 
     for _ in range(numWorkers):
         p = multiprocessing.Process(target=worker, args=(input_queue, stop_event))
