@@ -32,6 +32,8 @@ parser.add_argument('--video_folder', type=str, default='video',help='Configure 
 parser.add_argument('--job_id', type=str,help='Configure of post processing', required=True)
 args = parser.parse_args()
 
+print(args)
+
 config = yaml.safe_load(open(args.config, 'r'))
 if config['offscreen_rendering'] is True:
     vispy.use(app='egl')

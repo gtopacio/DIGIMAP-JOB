@@ -73,6 +73,7 @@ def processMessage(message):
         IMAGE_FILE_NAME = f"{id}.jpg"
         VIDEO_FILE_NAME = f"{id}_{traj}.mp4"
 
+        firestore.document(f"jobs/{id}").update({u'status': "PROCESSING", u'message': "Currently being processed"})
         imageBlob = bucket.blob(IMAGE_FILE_NAME)
         imageBlob.download_to_filename(IMAGE_PATH)
 
@@ -83,7 +84,7 @@ def processMessage(message):
 
         firestore.document(f"jobs/{id}").update({u'status': "UPLOADING", u'message': "Video being uploaded"})
         videoBlob = bucket.blob(VIDEO_FILE_NAME)
-        videoBlob.upload_from_filename(os.path.join("video", VIDEO_FILE_NAME))
+        videoBlob.upload_from_filename(os.path.join(VIDEO_DIR, VIDEO_FILE_NAME))
 
         print(f"Successfully uploaded {VIDEO_FILE_NAME}")
 

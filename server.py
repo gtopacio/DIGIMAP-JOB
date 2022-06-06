@@ -22,6 +22,9 @@ if __name__ == "__main__":
     print("Running Renderer")
 
     os.makedirs("image", exist_ok=True)
+    os.makedirs("depth", exist_ok=True)
+    os.makedirs("mesh", exist_ok=True)
+    os.makedirs("video", exist_ok=True)
 
     running = True
     waitTime = 1
