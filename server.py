@@ -41,6 +41,7 @@ if __name__ == "__main__":
     workers = []
 
     numWorkers = config("NUM_WORKERS", default=1, cast=int)
+    print(f"Workers: {numWorkers}")
 
     for _ in range(numWorkers):
         p = multiprocessing.Process(target=worker, args=(input_queue, stop_event))
