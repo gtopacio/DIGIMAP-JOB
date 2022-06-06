@@ -35,7 +35,9 @@ def clean_folder(folder, img_exts=['.png', '.jpg', '.npy', '.mp4']):
             os.system(f'rd {paths_to_check}')
         else:
             os.system(f'rm {paths_to_check}')
-            os.system(f'rmdir {paths_to_check}')
+    
+    os.system(f'rmdir {folder}')
+            
 
 def generateURL(bucket, blob_name):
     blob = bucket.blob(blob_name)

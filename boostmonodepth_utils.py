@@ -32,8 +32,6 @@ def run_boostmonodepth(img_names, src_folder, depth_folder, job_id):
         base_name = os.path.basename(img_name)
         tgt_name = os.path.join(BOOST_BASE, BOOST_INPUTS, job_id, base_name)
 
-        print(img_name, base_name, tgt_name)
-
         if(os.name is "nt"):
             os.system(f'copy {img_name} {tgt_name}')
         else:
