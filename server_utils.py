@@ -113,7 +113,12 @@ def processMessage(message):
             u'message': str(e)
         })
         print(e)
-
+        sqs.change_message_visibility(
+            QueueUrl=SQS_QUEUE_URL,
+            ReceiptHandle=receiptHandle,
+            VisibilityTimeout=10
+        )
+        
     finally:
         clean_folder(BOOST_IN_DIR)
         clean_folder(BOOST_OUT_DIR)

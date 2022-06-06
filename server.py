@@ -41,7 +41,7 @@ if __name__ == "__main__":
     stop_event = multiprocessing.Event()
     workers = []
 
-    jobMemLimit = 8 * 1000 * 1024 * 1024
+    jobMemLimit = 10 * 1000 * 1024 * 1024
     numWorkers = int(psutil.virtual_memory().available / jobMemLimit)
 
     print("Number of Workers: ", numWorkers)
