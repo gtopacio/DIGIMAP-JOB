@@ -41,6 +41,8 @@ if __name__ == "__main__":
     jobMemLimit = 10 * 1000 * 1024 * 1024
     numWorkers = int(psutil.virtual_memory().available / jobMemLimit)
 
+    print("Number of Workers: ", numWorkers)
+
     for _ in range(numWorkers):
         p = multiprocessing.Process(target=worker, args=(input_queue, stop_event))
         workers.append(p)
