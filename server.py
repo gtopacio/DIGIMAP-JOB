@@ -31,6 +31,9 @@ if __name__ == "__main__":
     waitTimeCap = 20
     visibilityTimeout = 15*60
 
+    RAM_PER_JOB = config('RAM_PER_JOB', default=10, cast=int)
+    print(f"Ram Per Job: {RAM_PER_JOB}")
+
     sqs = boto3.client("sqs",
         region_name="ap-southeast-1",
         aws_access_key_id=config("AWS_ACCESS_KEY_ID"),
@@ -41,7 +44,7 @@ if __name__ == "__main__":
     stop_event = multiprocessing.Event()
     workers = []
 
-    jobMemLimit = 8 * 1000 * 1024 * 1024
+    jobMemLimit = 1000 * 1024 * 1024 * RAM_PER_JOB
     numWorkers = int(psutil.virtual_memory().available / jobMemLimit)
 
     print("Number of Workers: ", numWorkers)
