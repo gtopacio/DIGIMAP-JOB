@@ -29,6 +29,7 @@ parser.add_argument('--src_folder', type=str, default='image',help='Configure of
 parser.add_argument('--depth_folder', type=str, default='depth',help='Configure of post processing')
 parser.add_argument('--mesh_folder', type=str, default='mesh',help='Configure of post processing')
 parser.add_argument('--video_folder', type=str, default='video',help='Configure of post processing')
+parser.add_argument('--job_id', type=str,help='Configure of post processing', required=True)
 args = parser.parse_args()
 
 config = yaml.safe_load(open(args.config, 'r'))
@@ -39,6 +40,7 @@ config['src_folder'] = args.src_folder
 config['mesh_folder'] = args.mesh_folder
 config['video_folder'] = args.video_folder
 config['depth_folder'] = args.depth_folder
+config['server_job_id'] = args.job_id
 
 os.makedirs(config['mesh_folder'], exist_ok=True)
 os.makedirs(config['video_folder'], exist_ok=True)
@@ -62,7 +64,7 @@ for idx in tqdm(range(len(sample_list))):
 
     print(f"Running depth extraction at {time.time()}")
     if config['use_boostmonodepth'] is True:
-        run_boostmonodepth(sample['ref_img_fi'], config['src_folder'], config['depth_folder'])
+        run_boostmonodepth(sample['ref_img_fi'], config['src_folder'], config['depth_folder'], config['server_job_id'])
     elif config['require_midas'] is True:
         run_depth([sample['ref_img_fi']], config['src_folder'], config['depth_folder'],
                   config['MiDaS_model_ckpt'], MonoDepthNet, MiDaS_utils, target_w=640)
