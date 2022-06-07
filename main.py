@@ -22,6 +22,8 @@ from boostmonodepth_utils import run_boostmonodepth
 from MiDaS.monodepth_net import MonoDepthNet
 import MiDaS.MiDaS_utils as MiDaS_utils
 from bilateral_filtering import sparse_bilateral_filtering
+import firebase_admin
+from firebase_admin import firestore
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--config', type=str, default='argument.yml',help='Configure of post processing')
@@ -46,13 +48,23 @@ else:
 print(f"running on device {device}")
 
 FIRESTORE_ID = args.job_id
+cred_obj = firebase_admin.credentials.Certificate("firebase-admin-key.json")
+default_app = firebase_admin.initialize_app(cred_obj, options=None, name="FirestoreDB")
+firestore = firestore.client(app=default_app)
+
+firestore.document(f"jobs/{FIRESTORE_ID}").update({u'progress': 0})
 
 for idx in tqdm(range(len(sample_list))):
+
+    firestore.document(f"jobs/{FIRESTORE_ID}").update({u'progress': 0})
+
     depth = None
     sample = sample_list[idx]
     print("Current Source ==> ", sample['src_pair_name'])
     mesh_fi = os.path.join(config['mesh_folder'], sample['src_pair_name'] +'.ply')
     image = imageio.imread(sample['ref_img_fi'])
+
+    firestore.document(f"jobs/{FIRESTORE_ID}").update({u'progress': 10})
 
     print(f"Running depth extraction at {time.time()}")
     if config['use_boostmonodepth'] is True:
@@ -61,26 +73,38 @@ for idx in tqdm(range(len(sample_list))):
         run_depth([sample['ref_img_fi']], config['src_folder'], config['depth_folder'],
                   config['MiDaS_model_ckpt'], MonoDepthNet, MiDaS_utils, target_w=640)
 
+    firestore.document(f"jobs/{FIRESTORE_ID}").update({u'progress': 20})              
+
     if 'npy' in config['depth_format']:
         config['output_h'], config['output_w'] = np.load(sample['depth_fi']).shape[:2]
     else:
         config['output_h'], config['output_w'] = imageio.imread(sample['depth_fi']).shape[:2]
 
+    firestore.document(f"jobs/{FIRESTORE_ID}").update({u'progress': 30})
+
     frac = config['longer_side_len'] / max(config['output_h'], config['output_w'])
     config['output_h'], config['output_w'] = int(config['output_h'] * frac), int(config['output_w'] * frac)
     config['original_h'], config['original_w'] = config['output_h'], config['output_w']
 
+    firestore.document(f"jobs/{FIRESTORE_ID}").update({u'progress': 40})
+
     if image.ndim == 2:
         image = image[..., None].repeat(3, -1)
+
+    firestore.document(f"jobs/{FIRESTORE_ID}").update({u'progress': 50})
 
     if np.sum(np.abs(image[..., 0] - image[..., 1])) == 0 and np.sum(np.abs(image[..., 1] - image[..., 2])) == 0:
         config['gray_image'] = True
     else:
         config['gray_image'] = False
 
+    firestore.document(f"jobs/{FIRESTORE_ID}").update({u'progress': 60})
+
     image = cv2.resize(image, (config['output_w'], config['output_h']), interpolation=cv2.INTER_AREA)
     depth = read_MiDaS_depth(sample['depth_fi'], 3.0, config['output_h'], config['output_w'])
     mean_loc_depth = depth[depth.shape[0]//2, depth.shape[1]//2]
+
+    firestore.document(f"jobs/{FIRESTORE_ID}").update({u'progress': 70})
 
     #end depth extraction
 
@@ -115,6 +139,7 @@ for idx in tqdm(range(len(sample_list))):
         rgb_model = rgb_model.to(device)
         graph = None
 
+        firestore.document(f"jobs/{FIRESTORE_ID}").update({u'progress': 80})
 
         print(f"Writing depth ply (and basically doing everything) at {time.time()}")
         rt_info = write_ply(image,
@@ -134,6 +159,8 @@ for idx in tqdm(range(len(sample_list))):
         depth_edge_model = None
         depth_feat_model = None
         torch.cuda.empty_cache()
+
+        firestore.document(f"jobs/{FIRESTORE_ID}").update({u'progress': 90})
     
     if config['save_ply'] is True or config['load_ply'] is True:
         verts, colors, faces, Height, Width, hFov, vFov = read_ply(mesh_fi)
@@ -152,3 +179,5 @@ for idx in tqdm(range(len(sample_list))):
                         image.copy(), copy.deepcopy(sample['int_mtx']), config, image,
                         videos_poses, video_basename, config.get('original_h'), config.get('original_w'), border=border, depth=depth, normal_canvas=normal_canvas, all_canvas=all_canvas,
                         mean_loc_depth=mean_loc_depth)
+
+    firestore.document(f"jobs/{FIRESTORE_ID}").update({u'progress': 100})
