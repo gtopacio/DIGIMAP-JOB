@@ -1,9 +1,9 @@
 import os
 import numpy as np
 try:
-    import cynetworky as netx
+    import cynetworkx as netx
 except ImportError:
-    import graph_tool.all as netx
+    import networkx as netx
 import matplotlib.pyplot as plt
 from functools import partial
 from vispy import scene, io
