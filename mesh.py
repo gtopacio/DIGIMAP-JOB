@@ -1,7 +1,7 @@
 import os
 import numpy as np
 try:
-    import cynetworkx as netx
+    import cynetworky as netx
 except ImportError:
     import graph_tool.all as netx
 import matplotlib.pyplot as plt

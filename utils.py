@@ -11,7 +11,7 @@ from torch import nn
 import matplotlib.pyplot as plt
 import re
 try:
-    import cynetworkx as netx
+    import cynetworky as netx
 except ImportError:
     import graph_tool.all as netx
 from scipy.ndimage import gaussian_filter
