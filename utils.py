@@ -13,7 +13,7 @@ import re
 try:
     import cynetworkx as netx
 except ImportError:
-    import networkx as netx
+    import graph_tool.all as netx
 from scipy.ndimage import gaussian_filter
 from skimage.feature import canny
 import collections
