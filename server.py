@@ -9,7 +9,6 @@ import torch
 
 SQS_QUEUE_URL = decouple.config("SQS_QUEUE_URL")
 HP_SQS_QUEUE_URL = decouple.config("HP_SQS_QUEUE_URL")
-DLQ_SQS_QUEUE_URL = decouple.config("DLQ_SQS_QUEUE_URL")
 FIREBASE_BUCKET = decouple.config("FIREBASE_BUCKET")
 
 BOOST_BASE = 'BoostingMonocularDepth'
