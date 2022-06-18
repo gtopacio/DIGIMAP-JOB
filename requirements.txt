@@ -1,7 +1,7 @@
-opencv-python==4.2.0.32
+opencv-python
 vispy
-moviepy==1.0.2
-transforms3d==0.3.1
+moviepy
+transforms3d
 scikit-image
 boto3
 firebase_admin

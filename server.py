@@ -37,6 +37,7 @@ if __name__ == "__main__":
     )
 
     if torch.cuda.is_available():
+        print("Initializing Torch CUDA")
         torch.cuda.init()
         print("Torch Initialization Finished")
 
