@@ -149,7 +149,8 @@ if __name__ == "__main__":
                         },
                         MessageBody=(
                             'Job'
-                        )
+                        ),
+                        MessageGroupId=id
                     )
                 else:
                     firestore.document(f"jobs/{id}").update({

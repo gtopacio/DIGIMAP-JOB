@@ -7,6 +7,7 @@ boto3
 firebase_admin
 scipy
 matplotlib
+yaml
 scikit-image
 networkx==2.3
 cynetworkx
