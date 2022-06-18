@@ -1,14 +1,15 @@
 import os
 import boto3
-import json
 import firebase_admin
 from firebase_admin import firestore, storage
 import signal
-import sys
 from server_utils import clean_folder, generateURL
 import decouple
+import torch
 
 SQS_QUEUE_URL = decouple.config("SQS_QUEUE_URL")
+HP_SQS_QUEUE_URL = decouple.config("HP_SQS_QUEUE_URL")
+DLQ_SQS_QUEUE_URL = decouple.config("DLQ_SQS_QUEUE_URL")
 FIREBASE_BUCKET = decouple.config("FIREBASE_BUCKET")
 
 BOOST_BASE = 'BoostingMonocularDepth'
@@ -36,6 +37,10 @@ if __name__ == "__main__":
         aws_secret_access_key=decouple.config("AWS_SECRET_ACCESS_KEY")
     )
 
+    if torch.cuda.is_available():
+        torch.cuda.init()
+        print("Torch Initialization Finished")
+
     def signal_handler(sig, frame):
         global running
         running = False
@@ -44,7 +49,24 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
     print("Running Renderer")
     while running:
+
+        high_priority = True
         response = sqs.receive_message(
+            QueueUrl=HP_SQS_QUEUE_URL,
+            AttributeNames=[
+                'SentTimestamp'
+            ],
+            MaxNumberOfMessages=1,
+            MessageAttributeNames=[
+                'All'
+            ],
+            VisibilityTimeout=visibilityTimeout,
+            WaitTimeSeconds=waitTime//2
+        )
+
+        if(len(response.get('Messages', [])) <= 0):
+            high_priority = False
+            response = sqs.receive_message(
             QueueUrl=SQS_QUEUE_URL,
             AttributeNames=[
                 'SentTimestamp'
@@ -55,16 +77,16 @@ if __name__ == "__main__":
             ],
             VisibilityTimeout=visibilityTimeout,
             WaitTimeSeconds=waitTime
-        )
+            )
 
+        
         if(len(response.get('Messages', [])) <= 0):
             waitTime *= 2
             if waitTime > waitTimeCap:
                 waitTime = waitTimeCap
             continue
 
-        for message in response.get("Messages", []):
-            
+        for message in response.get("Messages", []):            
             try:
                 message_body = message["MessageAttributes"]
                 receiptHandle = message['ReceiptHandle']
@@ -73,9 +95,15 @@ if __name__ == "__main__":
                 config = os.path.join("arguments", traj+".yml")
 
                 firestore.document(f"jobs/{id}").update({u'status': "PROCESSING", u'message': "Currently being processed"})
+
                 imageBlob = bucket.blob(id+".jpg")
                 imageBlob.download_to_filename(os.path.join("image", id+".jpg"))
 
+                sqs.delete_message(
+                    QueueUrl=SQS_QUEUE_URL,
+                    ReceiptHandle=receiptHandle
+                )
+                print(f"Successfully Deleted Message {receiptHandle}")
                 print(f"Successfully downloaded {id}")
                 print(f"Trajectory: {traj} Config: {config}")
 
@@ -99,23 +127,37 @@ if __name__ == "__main__":
 
                 imageBlob.delete()
                 print(f"Successfully Deleted Image")
-                sqs.delete_message(
-                    QueueUrl=SQS_QUEUE_URL,
-                    ReceiptHandle=receiptHandle
-                )
-                print(f"Successfully Deleted Message {receiptHandle}")
 
             except Exception as e:
-                firestore.document(f"jobs/{id}").update({
-                    u'status': "FAILED",
-                    u'message': str(e)
-                })
-                sqs.change_message_visibility(
-                    QueueUrl=SQS_QUEUE_URL,
-                    ReceiptHandle=receiptHandle,
-                    VisibilityTimeout=5
-                )
-                print(e)
+                if not high_priority:
+                    firestore.document(f"jobs/{id}").update({
+                        u'status': "RETRYING",
+                        u'message': "Failed to generate a 3D Photo, will retry"
+                    })
+                    response = sqs.send_message(
+                        QueueUrl=HP_SQS_QUEUE_URL,
+                        DelaySeconds=10,
+                        MessageAttributes={
+                            'id': {
+                            'StringValue': id,
+                            'DataType': 'String'
+                            },
+                            'traj': {
+                            'StringValue': traj,
+                            'DataType': 'String'
+                            }
+                        },
+                        MessageBody=(
+                            'Job'
+                        )
+                    )
+                else:
+                    firestore.document(f"jobs/{id}").update({
+                        u'status': "FAILED",
+                        u'message': "Failed to generate a 3D Photo"
+                    })
+                    imageBlob = bucket.blob(id+".jpg")
+                    imageBlob.delete()
 
             finally:
                 clean_folder(os.path.join(BOOST_BASE, BOOST_INPUTS))
