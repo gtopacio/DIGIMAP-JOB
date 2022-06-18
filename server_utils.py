@@ -18,7 +18,7 @@ def generateURL(bucket, blob_name):
     blob = bucket.blob(blob_name)
     url = blob.generate_signed_url(
         version="v4",
-        expiration=datetime.timedelta(minutes=15),
+        expiration=datetime.timedelta(minutes=1380),
         method="GET",
     )
     return url
