@@ -141,6 +141,9 @@ class BaseOptions():
 
         self.print_options(opt)
 
+        if not torch.cuda.is_available():
+            opt.gpu_ids = "-1"
+
         # set gpu ids
         str_ids = opt.gpu_ids.split(',')
         opt.gpu_ids = []
