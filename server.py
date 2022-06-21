@@ -29,6 +29,8 @@ if __name__ == "__main__":
     firestore = firestore.client(app=default_app)
     bucket = storage.bucket(name=FIREBASE_BUCKET, app=default_app)
 
+    gpu_ext = "_cpu"
+
     sqs = boto3.client(
         "sqs",
         region_name="ap-southeast-1",
@@ -37,6 +39,7 @@ if __name__ == "__main__":
     )
 
     if torch.cuda.is_available():
+        gpu_ext = ""
         print("Initializing Torch CUDA")
         torch.cuda.init()
         print("Torch Initialization Finished")
@@ -92,7 +95,7 @@ if __name__ == "__main__":
                 receiptHandle = message['ReceiptHandle']
                 id = message_body["id"]["StringValue"]
                 traj = message_body["traj"]["StringValue"]
-                config = os.path.join("arguments", traj+".yml")
+                config = os.path.join("arguments", f"{traj+gpu_ext}.yml")
 
                 firestore.document(f"jobs/{id}").update({u'status': "PROCESSING", u'message': "Currently being processed"})
 
