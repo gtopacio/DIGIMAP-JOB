@@ -10,6 +10,7 @@ import torch
 SQS_QUEUE_URL = decouple.config("SQS_QUEUE_URL")
 HP_SQS_QUEUE_URL = decouple.config("HP_SQS_QUEUE_URL")
 FIREBASE_BUCKET = decouple.config("FIREBASE_BUCKET")
+FIREBASE_CREDENTIALS_PATH = decouple.config("FIREBASE_CREDENTIALS_PATH")
 
 BOOST_BASE = 'BoostingMonocularDepth'
 BOOST_INPUTS = 'inputs'
@@ -24,7 +25,7 @@ if __name__ == "__main__":
     waitTimeCap = 20
     visibilityTimeout = 15*60
 
-    cred_obj = firebase_admin.credentials.Certificate("firebase-admin-key.json")
+    cred_obj = firebase_admin.credentials.Certificate(FIREBASE_CREDENTIALS_PATH)
     default_app = firebase_admin.initialize_app(cred_obj, options=None, name="FirestoreDB")
     firestore = firestore.client(app=default_app)
     bucket = storage.bucket(name=FIREBASE_BUCKET, app=default_app)
@@ -54,6 +55,7 @@ if __name__ == "__main__":
     while running:
 
         high_priority = True
+        print("Now Accepting Messages")
         response = sqs.receive_message(
             QueueUrl=HP_SQS_QUEUE_URL,
             AttributeNames=[

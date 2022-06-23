@@ -1,6 +1,5 @@
 import numpy as np
 import argparse
-import glob
 import os
 from functools import partial
 import vispy
@@ -8,12 +7,10 @@ import scipy.misc as misc
 from tqdm import tqdm
 import yaml
 import time
-import sys
 from mesh import write_ply, read_ply, output_3d_photo
 from utils import get_MiDaS_samples, read_MiDaS_depth
 import torch
 import cv2
-from skimage.transform import resize
 import imageio
 import copy
 from networks import Inpaint_Color_Net, Inpaint_Depth_Net, Inpaint_Edge_Net
@@ -24,6 +21,9 @@ import MiDaS.MiDaS_utils as MiDaS_utils
 from bilateral_filtering import sparse_bilateral_filtering
 import firebase_admin
 from firebase_admin import firestore
+import decouple
+
+FIREBASE_CREDENTIALS_PATH = decouple.config("FIREBASE_CREDENTIALS_PATH")
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--config', type=str, default='argument.yml',help='Configure of post processing')
@@ -48,7 +48,7 @@ else:
 print(f"running on device {device}")
 
 FIRESTORE_ID = args.job_id
-cred_obj = firebase_admin.credentials.Certificate("firebase-admin-key.json")
+cred_obj = firebase_admin.credentials.Certificate(FIREBASE_CREDENTIALS_PATH)
 default_app = firebase_admin.initialize_app(cred_obj, options=None, name="FirestoreDB")
 firestore = firestore.client(app=default_app)
 
