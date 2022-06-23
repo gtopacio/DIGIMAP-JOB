@@ -32,7 +32,12 @@ args = parser.parse_args()
 
 config = yaml.safe_load(open(args.config, 'r'))
 if config['offscreen_rendering'] is True:
-    vispy.use(app='egl')
+    if torch.cuda.is_available():
+        vispy_backend = 'egl'
+        os.environ.pop("QT_QPA_PLATFORM_PLUGIN_PATH")
+    else:
+        vispy_backend = 'egl'
+    vispy.use(app=vispy_backend)
 
 os.makedirs(config['mesh_folder'], exist_ok=True)
 os.makedirs(config['video_folder'], exist_ok=True)

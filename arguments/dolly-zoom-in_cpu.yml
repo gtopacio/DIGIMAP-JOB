@@ -20,7 +20,7 @@ load_ply: False
 save_ply: False
 inference_video: True
 gpu_ids: -1
-offscreen_rendering: False
+offscreen_rendering: True
 img_format: '.jpg'
 depth_format: '.npy'
 require_midas: True

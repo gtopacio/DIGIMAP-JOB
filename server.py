@@ -51,11 +51,10 @@ if __name__ == "__main__":
         print("Program will terminate after finishing the process")
 
     signal.signal(signal.SIGINT, signal_handler)
-    print("Running Renderer")
+    print("Renderer now running")
     while running:
 
         high_priority = True
-        print("Now Accepting Messages")
         response = sqs.receive_message(
             QueueUrl=HP_SQS_QUEUE_URL,
             AttributeNames=[
