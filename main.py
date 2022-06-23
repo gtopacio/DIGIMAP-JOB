@@ -34,9 +34,9 @@ config = yaml.safe_load(open(args.config, 'r'))
 if config['offscreen_rendering'] is True:
     if torch.cuda.is_available():
         vispy_backend = 'egl'
-        os.environ.pop("QT_QPA_PLATFORM_PLUGIN_PATH")
     else:
         vispy_backend = 'PyQt5'
+        os.environ.pop("QT_QPA_PLATFORM_PLUGIN_PATH")
     vispy.use(app=vispy_backend)
 
 os.makedirs(config['mesh_folder'], exist_ok=True)
