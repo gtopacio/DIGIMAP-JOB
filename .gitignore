@@ -6,4 +6,4 @@ test.py
 .env
 test.txt
 archive/
-firebase-admin-key.json
+credentials/
