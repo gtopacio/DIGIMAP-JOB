@@ -8,7 +8,6 @@ import decouple
 import torch
 
 SQS_QUEUE_URL = decouple.config("SQS_QUEUE_URL")
-HP_SQS_QUEUE_URL = decouple.config("HP_SQS_QUEUE_URL")
 FIREBASE_BUCKET = decouple.config("FIREBASE_BUCKET")
 FIREBASE_CREDENTIALS_PATH = decouple.config("FIREBASE_CREDENTIALS_PATH")
 
