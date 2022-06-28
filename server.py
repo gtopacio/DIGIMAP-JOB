@@ -23,7 +23,7 @@ if __name__ == "__main__":
     running = True
     waitTime = 1
     waitTimeCap = 20
-    visibilityTimeout = 15*60
+    visibilityTimeout = 60*60
 
     cred_obj = firebase_admin.credentials.Certificate(FIREBASE_CREDENTIALS_PATH)
     default_app = firebase_admin.initialize_app(cred_obj, options=None, name="FirestoreDB")
@@ -54,23 +54,7 @@ if __name__ == "__main__":
     print("Renderer now running")
     while running:
 
-        high_priority = True
         response = sqs.receive_message(
-            QueueUrl=HP_SQS_QUEUE_URL,
-            AttributeNames=[
-                'SentTimestamp'
-            ],
-            MaxNumberOfMessages=1,
-            MessageAttributeNames=[
-                'All'
-            ],
-            VisibilityTimeout=visibilityTimeout,
-            WaitTimeSeconds=waitTime//2
-        )
-
-        if(len(response.get('Messages', [])) <= 0):
-            high_priority = False
-            response = sqs.receive_message(
             QueueUrl=SQS_QUEUE_URL,
             AttributeNames=[
                 'SentTimestamp'
@@ -81,9 +65,8 @@ if __name__ == "__main__":
             ],
             VisibilityTimeout=visibilityTimeout,
             WaitTimeSeconds=waitTime
-            )
+        )
 
-        
         if(len(response.get('Messages', [])) <= 0):
             waitTime *= 2
             if waitTime > waitTimeCap:
@@ -103,11 +86,6 @@ if __name__ == "__main__":
                 imageBlob = bucket.blob(id+".jpg")
                 imageBlob.download_to_filename(os.path.join("image", id+".jpg"))
 
-                sqs.delete_message(
-                    QueueUrl=SQS_QUEUE_URL,
-                    ReceiptHandle=receiptHandle
-                )
-                print(f"Successfully Deleted Message {receiptHandle}")
                 print(f"Successfully downloaded {id}")
                 print(f"Trajectory: {traj} Config: {config}")
 
@@ -129,41 +107,20 @@ if __name__ == "__main__":
 
                 print(f"Link: {signedURL}")
 
+                sqs.delete_message(
+                    QueueUrl=SQS_QUEUE_URL,
+                    ReceiptHandle=receiptHandle
+                )
+                print(f"Successfully Deleted Message {receiptHandle}")
+
                 imageBlob.delete()
                 print(f"Successfully Deleted Image")
 
             except Exception as e:
-                if not high_priority:
-                    firestore.document(f"jobs/{id}").update({
-                        u'status': "RETRYING",
-                        u'message': "Failed to generate a 3D Photo, will retry"
-                    })
-                    response = sqs.send_message(
-                        QueueUrl=HP_SQS_QUEUE_URL,
-                        DelaySeconds=10,
-                        MessageAttributes={
-                            'id': {
-                            'StringValue': id,
-                            'DataType': 'String'
-                            },
-                            'traj': {
-                            'StringValue': traj,
-                            'DataType': 'String'
-                            }
-                        },
-                        MessageBody=(
-                            'Job'
-                        ),
-                        MessageGroupId=id
-                    )
-                else:
-                    firestore.document(f"jobs/{id}").update({
-                        u'status': "FAILED",
-                        u'message': "Failed to generate a 3D Photo"
-                    })
-                    imageBlob = bucket.blob(id+".jpg")
-                    imageBlob.delete()
-
+                firestore.document(f"jobs/{id}").update({
+                    u'status': "RETRYING",
+                    u'message': "Failed to generate a 3D Photo, will retry"
+                })
             finally:
                 clean_folder(os.path.join(BOOST_BASE, BOOST_INPUTS))
                 clean_folder(os.path.join(BOOST_BASE, BOOST_OUTPUTS))
