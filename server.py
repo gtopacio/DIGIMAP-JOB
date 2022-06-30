@@ -18,6 +18,8 @@ BOOST_OUTPUTS = 'outputs'
 @firestore.transactional
 def update_latest(transaction, latest_ref, jobNumber):
     snapshot = latest_ref.get(transaction=transaction)
+    data = snapshot.to_dict() if snapshot.exists else None
+    currLatest = data['value'] if data is not None else -1
 
     if not snapshot.exists:
         transaction.set(latest_ref, {
@@ -25,7 +27,7 @@ def update_latest(transaction, latest_ref, jobNumber):
         })
         return
 
-    if snapshot.get(u'value') < jobNumber:
+    if currLa < jobNumber:
         transaction.update(latest_ref, {
             u'value': jobNumber
         })
