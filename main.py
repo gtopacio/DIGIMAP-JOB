@@ -36,7 +36,7 @@ if config['offscreen_rendering'] is True:
         vispy_backend = 'egl'
     else:
         vispy_backend = 'PyQt5'
-        os.environ.pop("QT_QPA_PLATFORM_PLUGIN_PATH")
+        #os.environ.pop("QT_QPA_PLATFORM_PLUGIN_PATH")
     vispy.use(app=vispy_backend)
 
 os.makedirs(config['mesh_folder'], exist_ok=True)
