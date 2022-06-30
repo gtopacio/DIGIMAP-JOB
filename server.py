@@ -19,7 +19,7 @@ BOOST_OUTPUTS = 'outputs'
 def update_latest(transaction, latest_ref, jobNumber):
     snapshot = latest_ref.get(transaction=transaction)
 
-    if not snapshot:
+    if not snapshot.exists:
         transaction.set(latest_ref, {
             u'value': jobNumber
         })
@@ -98,7 +98,11 @@ if __name__ == "__main__":
                 traj = message_body["traj"]["StringValue"]
                 config = os.path.join("arguments", f"{traj+gpu_ext}.yml")
 
-                jobNumber = firestore.document(f"jobs/{id}").get(u'jobNumber')
+                doc_ref = firestore.document(f"jobs/{id}").get()
+
+                data = doc_ref.to_dict()
+
+                jobNumber = data['jobNumber']
 
                 print(f"Job Number {jobNumber}")
 
