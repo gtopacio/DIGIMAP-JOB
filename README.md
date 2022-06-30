@@ -16,8 +16,6 @@ AWS Linux with Deep Learning Base AMI
 <br> **AWS_ACCESS_KEY_ID** - access key id of the IAM user with SQS credentials for job posting
 <br> **AWS_SECRET_ACCESS_KEY** - secret key of the IAM user with SQS credentials for job posting
 <br> **SQS_QUEUE_URL** - URL of the SQS queue to be used for job posting
-<br> **HP_SQS_QUEUE_URL** - URL of the SQS queue to be used for failed jobs
 <br> **FIREBASE_BUCKET** - bucket URI provided by Firebase Storage (ex. gs://my-app.appspot.com)
 <br> **FIREBASE_CREDENTIALS_PATH** - path to the json containing the credentials for firebase-admin
 7. Run **python server.py**
-<br>NOTE: If you are running the program without a GPU you might need to run **xvfb-run python server.py** instead
