@@ -143,6 +143,7 @@ if __name__ == "__main__":
                 print(f"Successfully Deleted Image")
 
             except Exception as e:
+                print(e)
                 firestore.document(f"jobs/{id}").update({
                     u'status': "RETRYING",
                     u'message': "Failed to generate a 3D Photo, will retry"
