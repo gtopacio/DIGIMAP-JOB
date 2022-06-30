@@ -9,7 +9,7 @@ AWS Linux with Deep Learning Base AMI
 1. Run **sudo apt-get update**
 2. Run **sudo apt-get install -y libfontconfig1-dev wget ffmpeg libsm6 libxext6 libxrender-dev mesa-utils-extra libegl1-mesa-dev libgles2-mesa-dev xvfb git python3-pyqt5 libegl1-mesa libglfw3-dev**
 2. Create a Conda Environment by running **conda create -n 3DP python=3.8 anaconda**
-3. Run **pip install -r requirements.txt**
+3. Run **pip install -r requirements.txt**, OPTIONAL: Install cynetworkx via pip install cynetworkx
 4. Run **sudo chmod +x ./download.sh**
 5. Run **./download.sh**
 6. Create a **.env** file containing these variables:
