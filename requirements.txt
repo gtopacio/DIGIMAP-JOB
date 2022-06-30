@@ -11,4 +11,3 @@ pyyaml
 scikit-image
 networkx==2.3
 python-decouple
-PyQt5
