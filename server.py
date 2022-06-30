@@ -90,7 +90,7 @@ if __name__ == "__main__":
                 print(f"Successfully downloaded {id}")
                 print(f"Trajectory: {traj} Config: {config}")
 
-                os.system(f'python main.py --config {config} --job_id {id}')
+                os.system(f'{xvfb}python main.py --config {config} --job_id {id}')
 
                 firestore.document(f"jobs/{id}").update({u'status': "UPLOADING", u'message': "Video being uploaded"})
                 videoFileName = id + '_' + traj + '.mp4'
