@@ -15,6 +15,22 @@ BOOST_BASE = 'BoostingMonocularDepth'
 BOOST_INPUTS = 'inputs'
 BOOST_OUTPUTS = 'outputs'
 
+@firestore.transactional
+def update_latest(transaction, latest_ref, jobNumber):
+    snapshot = latest_ref.get(transaction=transaction)
+
+    if not snapshot:
+        transaction.set(latest_ref, {
+            u'value': jobNumber
+        })
+        return
+
+    if snapshot.get(u'value') < jobNumber:
+        transaction.update(latest_ref, {
+            u'value': jobNumber
+        })
+
+
 if __name__ == "__main__":
 
     os.makedirs("image", exist_ok=True)
@@ -81,6 +97,15 @@ if __name__ == "__main__":
                 id = message_body["id"]["StringValue"]
                 traj = message_body["traj"]["StringValue"]
                 config = os.path.join("arguments", f"{traj+gpu_ext}.yml")
+
+                jobNumber = firestore.document(f"jobs/{id}").get(u'jobNumber')
+
+                print(f"Job Number {jobNumber}")
+
+                transaction = firestore.transaction()
+                latest_ref = firestore.document("shards/latestJob")
+
+                update_latest(transaction=transaction, latest_ref=latest_ref, jobNumber=jobNumber)
 
                 firestore.document(f"jobs/{id}").update({u'status': "PROCESSING", u'message': "Currently being processed"})
 
