@@ -2,8 +2,8 @@ depth_edge_model_ckpt: checkpoints/edge-model.pth
 depth_feat_model_ckpt: checkpoints/depth-model.pth
 rgb_feat_model_ckpt: checkpoints/color-model.pth
 MiDaS_model_ckpt: MiDaS/model.pt
-use_boostmonodepth: False
-fps: 30
+use_boostmonodepth: True
+fps: 24
 num_frames: 240
 x_shift_range: [0.00]
 y_shift_range: [0.00]
