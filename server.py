@@ -30,6 +30,7 @@ if __name__ == "__main__":
     bucket = storage.bucket(name=FIREBASE_BUCKET, app=default_app)
 
     gpu_ext = "_cpu"
+    xvfb = "xvfb-run "
 
     sqs = boto3.client(
         "sqs",
@@ -40,6 +41,7 @@ if __name__ == "__main__":
 
     if torch.cuda.is_available():
         gpu_ext = ""
+        xvfb = ""
         print("Initializing Torch CUDA")
         torch.cuda.init()
         print("Torch Initialization Finished")
@@ -88,7 +90,7 @@ if __name__ == "__main__":
                 print(f"Successfully downloaded {id}")
                 print(f"Trajectory: {traj} Config: {config}")
 
-                os.system(f'python main.py --config {config} --job_id {id}')
+                os.system(f'{xvfb}python main.py --config {config} --job_id {id}')
 
                 firestore.document(f"jobs/{id}").update({u'status': "UPLOADING", u'message': "Video being uploaded"})
                 videoFileName = id + '_' + traj + '.mp4'
