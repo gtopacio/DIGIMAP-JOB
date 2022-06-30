@@ -27,7 +27,7 @@ def update_latest(transaction, latest_ref, jobNumber):
         })
         return
 
-    if currLa < jobNumber:
+    if currLatest < jobNumber:
         transaction.update(latest_ref, {
             u'value': jobNumber
         })
